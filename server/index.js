@@ -1,19 +1,16 @@
 const express = require('express');
 
+const api = require('./api/v1/');
+
 const app = express();
 
-app.get('/', (req, res, next) => {
-  next(new Error('Connection Failed'));
-
-  res.json({
-    message: 'Welcome to api',
-  });
-});
+app.use('/api/v1', api);
+app.use('/api', api);
 
 app.use((req, res, next) => {
   res.status(404);
   res.json({
-    message: 'Not found try again',
+    message: 'Not found',
   });
 });
 
