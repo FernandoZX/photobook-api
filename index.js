@@ -1,8 +1,12 @@
 const http = require('http');
 
-// const hostname = '127.0.0.1';
-// const port = 3000;
+const app = require('./server/');
+const config = require('./server/config/');
 
+const {
+  port,
+  hostname,
+} = config.server;
 // const server = http.createServer((req, res) => {
 //   res.statusCode = 200;
 //   res.setHeader('Content-Type', 'text/plain');
@@ -12,16 +16,13 @@ const http = require('http');
 // server.listen(port, hostname, () => {
 //   console.log(`Server running at http://${hostname}:${port}/`);
 // });
-const express = require('express');
-
-const app = express();
-
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
 
 const server = http.createServer(app);
 
-server.listen(3000, () => {
-  console.log('Example app listening on port 3000!');
+// server.listen(3000, () => {
+//   console.log('Example app listening on port 3000!');
+// });
+
+server.listen(port, hostname, () => {
+  console.log(`Server running at http://${hostname}:${port}/`);
 });
