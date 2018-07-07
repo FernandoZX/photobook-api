@@ -1,45 +1,90 @@
+const Model = require('./model');
+
+exports.id = (req, res, next, id) => {
+  Model.findById(id)
+    .then((doc) => {
+      if (doc) {
+        req.doc = doc;
+        next();
+      } else {
+        res.json({
+          message: `${Model.modelName} not found`,
+        });
+      }
+    })
+    .catch((err) => {
+      next(new Error(err));
+    });
+};
+
 exports.all = (req, res, next) => {
-  res.json([]);
+  Model.find()
+    .then((docs) => {
+      res.json({
+        posts: docs,
+      });
+    })
+    .catch((err) => {
+      next(new Error(err));
+    });
 };
 
 exports.create = (req, res, next) => {
   const {
     body,
   } = req;
-  res.json({
-    item: body,
-  });
+
+  const document = new Model(body.post);
+  document.save()
+    .then((doc) => {
+      res.json({
+        post: doc,
+      });
+    })
+    .catch((err) => {
+      next(new Error(err));
+    });
 };
 
 exports.read = (req, res, next) => {
   const {
-    params,
+    doc,
   } = req;
+
   res.json({
-    item: {
-      id: params.id,
-    },
+    post: doc,
   });
 };
 
 exports.update = (req, res, next) => {
   const {
-    params,
+    doc,
+    body,
   } = req;
-  res.json({
-    item: {
-      id: params.id,
-    },
-  });
+
+  Object.assign(doc, body.post);
+
+  doc.save()
+    .then((updated) => {
+      res.json({
+        post: updated,
+      });
+    })
+    .catch((err) => {
+      next(new Error(err));
+    });
 };
 
 exports.delete = (req, res, next) => {
   const {
-    params,
+    doc,
   } = req;
-  res.json({
-    item: {
-      id: params.id,
-    },
-  });
+
+  doc.remove()
+    .then((deleted) => {
+      res.json(deleted);
+    })
+    .catch((err) => {
+      next(new Error(err));
+    });
 };

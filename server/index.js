@@ -1,7 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const database = require('./database');
 
 const api = require('./api/v1/');
+
+database.connect();
 
 const app = express();
 
@@ -19,6 +22,13 @@ app.use((req, res, next) => {
   res.status(404);
   res.json({
     message: 'Not found',
+  });
+});
+
+app.use((req, res, next) => {
+  res.status(400);
+  res.json({
+    message: 'Papi Bad request!!!',
   });
 });
 
