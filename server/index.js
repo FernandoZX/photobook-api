@@ -18,25 +18,34 @@ app.use(bodyParser.json());
 app.use('/api/v1', api);
 app.use('/api', api);
 
-app.use((req, res, next) => {
-  res.status(404);
-  res.json({
-    message: 'Not found',
-  });
+const errorMessage = text => ({
+  error: true,
+  message: text,
 });
 
 app.use((req, res, next) => {
-  res.status(400);
-  res.json({
-    message: 'Papi Bad request!!!',
-  });
+  res.status(404);
+  res.json(errorMessage('Not found'));
 });
 
 app.use((err, req, res, next) => {
-  res.status(500);
-  res.json({
-    message: err.message,
-  });
+  let {
+    statusCode = 500, message,
+  } = err;
+
+  switch (err.type) {
+    case 'entity.parse.failed':
+      message = `Bad Request: ${err.message}`;
+      break;
+    default:
+      if (err.message.startsWith('ValidationError')) {
+        statusCode = 422;
+      }
+      break;
+  }
+
+  res.status(statusCode);
+  res.json(errorMessage(message));
 });
 
 module.exports = app;

@@ -1,5 +1,15 @@
 const Model = require('./model');
 
+const {
+  parsePaginationParams,
+} = require('./../../../utils/');
+
+
+const responseObject = doc => ({
+  sucess: true,
+  post: doc,
+});
+
 exports.id = (req, res, next, id) => {
   Model.findById(id)
     .then((doc) => {
@@ -8,6 +18,7 @@ exports.id = (req, res, next, id) => {
         next();
       } else {
         res.json({
+          sucess: false,
           message: `${Model.modelName} not found`,
         });
       }
@@ -18,10 +29,34 @@ exports.id = (req, res, next, id) => {
 };
 
 exports.all = (req, res, next) => {
-  Model.find()
-    .then((docs) => {
+  const {
+    query,
+  } = req;
+
+  const {
+    limit,
+    skip,
+    page,
+  } = parsePaginationParams(query);
+
+  const count = Model.count();
+  const all = Model.find().skip(skip).limit(limit);
+
+  Promise.all([count.exec(), all.exec()])
+    .then((data) => {
+      const [total = 0, docs = []] = data;
+      const pages = Math.ceil(total / limit);
+
       res.json({
-        posts: docs,
+        success: true,
+        items: docs,
+        meta: {
+          limit,
+          skip,
+          total,
+          page,
+          pages,
+        },
       });
     })
     .catch((err) => {
@@ -37,9 +72,8 @@ exports.create = (req, res, next) => {
   const document = new Model(body.post);
   document.save()
     .then((doc) => {
-      res.json({
-        post: doc,
-      });
+      res.status(201);
+      res.json(responseObject(doc));
     })
     .catch((err) => {
       next(new Error(err));
@@ -51,9 +85,7 @@ exports.read = (req, res, next) => {
     doc,
   } = req;
 
-  res.json({
-    post: doc,
-  });
+  res.json(responseObject(doc));
 };
 
 exports.update = (req, res, next) => {
@@ -66,9 +98,7 @@ exports.update = (req, res, next) => {
 
   doc.save()
     .then((updated) => {
-      res.json({
-        post: updated,
-      });
+      res.json(responseObject(updated));
     })
     .catch((err) => {
       next(new Error(err));
@@ -82,7 +112,7 @@ exports.delete = (req, res, next) => {
 
   doc.remove()
     .then((deleted) => {
-      res.json(deleted);
+      res.json(responseObject(deleted));
     })
     .catch((err) => {
       next(new Error(err));
