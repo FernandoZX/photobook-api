@@ -12,11 +12,6 @@ const {
   compactSortToStr,
 } = require('./../../../utils/');
 
-const responseObject = doc => ({
-  sucess: true,
-  post: doc,
-});
-
 exports.id = (req, res, next, id) => {
   Model
     .findById(id)
@@ -95,7 +90,10 @@ exports.create = (req, res, next) => {
   document.save()
     .then((doc) => {
       res.status(201);
-      res.json(responseObject(doc));
+      res.json({
+        success: true,
+        item: doc,
+      });
     })
     .catch((err) => {
       next(new Error(err));
@@ -107,7 +105,10 @@ exports.read = (req, res, next) => {
     doc,
   } = req;
 
-  res.json(responseObject(doc));
+  res.json({
+    success: true,
+    item: doc,
+  });
 };
 
 exports.update = (req, res, next) => {
@@ -120,7 +121,10 @@ exports.update = (req, res, next) => {
 
   doc.save()
     .then((updated) => {
-      res.json(responseObject(updated));
+      res.json({
+        success: true,
+        item: updated,
+      });
     })
     .catch((err) => {
       next(new Error(err));
@@ -134,7 +138,10 @@ exports.delete = (req, res, next) => {
 
   doc.remove()
     .then((removed) => {
-      res.json(responseObject(removed));
+      res.json({
+        success: true,
+        item: removed,
+      });
     })
     .catch((err) => {
       next(new Error(err));
