@@ -2,20 +2,21 @@ const {
   Model,
   fields,
   references,
+  virtuals,
 } = require('./model');
 
-const referencesNames = Object.getOwnPropertyNames(references);
+const referencesNames = [
+  ...Object.getOwnPropertyNames(references),
+  ...Object.getOwnPropertyNames(virtuals),
+];
 
 const {
   parsePaginationParams,
   parseSortParams,
   compactSortToStr,
+  filterByNested,
+  populateToObject,
 } = require('./../../../utils/');
-
-const responseObject = doc => ({
-  sucess: true,
-  post: doc,
-});
 
 exports.id = (req, res, next, id) => {
   Model
@@ -41,6 +42,7 @@ exports.id = (req, res, next, id) => {
 exports.all = (req, res, next) => {
   const {
     query,
+    params = {},
   } = req;
 
   const {
@@ -53,14 +55,19 @@ exports.all = (req, res, next) => {
     direction,
   } = parseSortParams(query, fields);
   const sort = compactSortToStr(sortBy, direction);
+  const {
+    filters,
+    populate,
+  } = filterByNested(params, referencesNames);
+  const populateObject = populateToObject(populate.split(' '), virtuals);
 
   const count = Model.count();
   const all = Model
-    .find()
+    .find(filters)
     .sort(sort)
     .skip(skip)
     .limit(limit)
-    .populate(referencesNames.join(' '));
+    .populate(populateObject);
 
   Promise.all([count.exec(), all.exec()])
     .then((data) => {
@@ -95,7 +102,10 @@ exports.create = (req, res, next) => {
   document.save()
     .then((doc) => {
       res.status(201);
-      res.json(responseObject(doc));
+      res.json({
+        success: true,
+        item: doc,
+      });
     })
     .catch((err) => {
       next(new Error(err));
@@ -107,7 +117,10 @@ exports.read = (req, res, next) => {
     doc,
   } = req;
 
-  res.json(responseObject(doc));
+  res.json({
+    success: true,
+    item: doc,
+  });
 };
 
 exports.update = (req, res, next) => {
@@ -120,7 +133,10 @@ exports.update = (req, res, next) => {
 
   doc.save()
     .then((updated) => {
-      res.json(responseObject(updated));
+      res.json({
+        success: true,
+        item: updated,
+      });
     })
     .catch((err) => {
       next(new Error(err));
@@ -134,7 +150,10 @@ exports.delete = (req, res, next) => {
 
   doc.remove()
     .then((removed) => {
-      res.json(responseObject(removed));
+      res.json({
+        success: true,
+        item: removed,
+      });
     })
     .catch((err) => {
       next(new Error(err));
