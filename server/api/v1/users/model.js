@@ -52,7 +52,8 @@ user.methods.toJSON = function toJSON() {
 
 user.pre('save', function save(next) {
   if (this.isNew || this.isModified('password')) {
-    this.password = bcrypt.hashSync(this.password, bcrypt.genSaltSync());
+    this.password = this.password;
+    //bcrypt.hashSync(this.password, bcrypt.genSaltSync());
   }
   next();
 });
